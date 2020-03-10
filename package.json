@@ -1,6 +1,6 @@
 {
   "name": "egg-logger-sentry",
-  "version": "1.0.0",
+  "version": "1.0.0-beta.1",
   "description": "Logger transport for Sentry",
   "eggPlugin": {
     "name": "loggerSentry"
@@ -40,11 +40,11 @@
     "autod": "autod"
   },
   "files": [
-    "app.js",
-    "agent.js",
-    "config",
     "app",
-    "lib"
+    "config",
+    "agent.js",
+    "lib",
+    "app.js"
   ],
   "ci": {
     "version": "8, 10"
