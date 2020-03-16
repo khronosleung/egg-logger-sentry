@@ -9,8 +9,9 @@ module.exports = class AppBootHook {
   }
 
   configDidLoad() {
-    this.app.config.coreMiddleware.unshift('sentryPushScope');
-    this.app.config.coreMiddleware.push('sentryPopScope');
+    const { app } = this;
+    app.config.coreMiddleware.unshift('sentryPushScope');
+    app.config.coreMiddleware.push('sentryPopScope');
   }
 
   didLoad() {
@@ -18,7 +19,7 @@ module.exports = class AppBootHook {
 
     app.Sentry = SentrySDK(app);
 
-    const config = app.config.sentry || app.config.loggerSentry;
+    const config = app.config.loggerSentry;
     for (const [ name, logger ] of app.loggers.entries()) {
       if (config.disable.includes(name)) {
         continue;
@@ -26,7 +27,7 @@ module.exports = class AppBootHook {
 
       const transport = new SentryLoggerTransport({
         level: logger.options.level,
-        app: this,
+        app,
       });
       logger.set('sentry', transport);
     }

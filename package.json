@@ -14,18 +14,19 @@
     "sentry-egg"
   ],
   "dependencies": {
-    "@sentry/node": "^5.13.2",
+    "@sentry/node": "^5.14.2",
     "egg-logger": "^2.4.1"
   },
   "devDependencies": {
-    "autod": "^3.0.1",
+    "autod": "^3.1.0",
     "autod-egg": "^1.1.0",
-    "egg": "^2.16.0",
-    "egg-bin": "^4.11.0",
-    "egg-ci": "^1.11.0",
-    "egg-mock": "^3.21.0",
-    "eslint": "^5.13.0",
-    "eslint-config-egg": "^7.1.0"
+    "egg": "^2.26.0",
+    "egg-bin": "^4.14.1",
+    "egg-ci": "^1.13.1",
+    "egg-mock": "^4.0.0",
+    "eslint": "^6.8.0",
+    "eslint-config-egg": "^8.0.1",
+    "ko-sleep": "^1.0.3"
   },
   "engines": {
     "node": ">=8.0.0"
