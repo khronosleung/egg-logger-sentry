@@ -9,12 +9,12 @@
 
 [npm-image]: https://img.shields.io/npm/v/egg-logger-sentry.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/egg-logger-sentry
-[travis-image]: https://img.shields.io/travis/eggjs/egg-logger-sentry.svg?style=flat-square
-[travis-url]: https://travis-ci.org/eggjs/egg-logger-sentry
-[codecov-image]: https://img.shields.io/codecov/c/github/eggjs/egg-logger-sentry.svg?style=flat-square
-[codecov-url]: https://codecov.io/github/eggjs/egg-logger-sentry?branch=master
-[david-image]: https://img.shields.io/david/eggjs/egg-logger-sentry.svg?style=flat-square
-[david-url]: https://david-dm.org/eggjs/egg-logger-sentry
+[travis-image]: https://img.shields.io/travis/kidneyleung/egg-logger-sentry.svg?style=flat-square
+[travis-url]: https://travis-ci.org/kidneyleung/egg-logger-sentry
+[codecov-image]: https://img.shields.io/codecov/c/github/kidneyleung/egg-logger-sentry.svg?style=flat-square
+[codecov-url]: https://codecov.io/github/kidneyleung/egg-logger-sentry?branch=master
+[david-image]: https://img.shields.io/david/kidneyleung/egg-logger-sentry.svg?style=flat-square
+[david-url]: https://david-dm.org/kidneyleung/egg-logger-sentry
 [snyk-image]: https://snyk.io/test/npm/egg-logger-sentry/badge.svg?style=flat-square
 [snyk-url]: https://snyk.io/test/npm/egg-logger-sentry
 [download-image]: https://img.shields.io/npm/dm/egg-logger-sentry.svg?style=flat-square
@@ -28,20 +28,20 @@ Sentry SDK for Egg
 $ npm i egg-logger-sentry --save
 ```
 
-## Usage
+## Configuration
+
+Change `${app_root}/config/plugin.js` to enable `egg-logger-sentry` plugin:
 
 ```js
-// {app_root}/config/plugin.js
 exports.loggerSentry = {
   enable: true,
   package: 'egg-logger-sentry',
 };
 ```
 
-## Configuration
+Configure information in `${app_root}/config/config.default.js`:
 
 ```js
-// {app_root}/config/config.default.js
 exports.loggerSentry = {
   dsn: 'https://<hash>@example.com/<id>'
 };
@@ -49,9 +49,17 @@ exports.loggerSentry = {
 
 see [config/config.default.js](config/config.default.js) for more detail.
 
-## Example
+## Usage
 
-<!-- example here -->
+### 
+
+```js
+ctx.logger.debug('debug info');
+ctx.logger.info('some request data: %j', ctx.request.body);
+ctx.logger.warn('WARNNING!!!!');
+```
+
+
 
 ## Questions & Suggestions
 
