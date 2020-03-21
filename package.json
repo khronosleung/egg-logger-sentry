@@ -1,6 +1,6 @@
 {
   "name": "egg-logger-sentry",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "description": "Logger transport for Sentry",
   "eggPlugin": {
     "name": "loggerSentry"
@@ -14,7 +14,7 @@
     "sentry-egg"
   ],
   "dependencies": {
-    "@sentry/node": "^5.14.2",
+    "@sentry/node": "^5.15.0",
     "egg-logger": "^2.4.1"
   },
   "devDependencies": {
@@ -45,6 +45,7 @@
     "config",
     "agent.js",
     "lib",
+    "agent.js",
     "app.js"
   ],
   "ci": {
