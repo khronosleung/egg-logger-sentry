@@ -7,20 +7,11 @@ class HomeController extends Controller {
     const { ctx } = this;
     const message = 'hi, ' + this.app.plugins.loggerSentry.name;
 
-    const input = {
-      ...ctx.request.body,
-    };
+    this.app.Sentry.setTag('test', '1');
 
-    ctx.logger.debug(message, input);
+    throw new Error('test');
 
-    // const output = ctx.app.Sentry.getCurrentHub().getStackTop().scope;
-
-    ctx.body = {
-      input,
-      output: {
-        // ...output,
-      },
-    };
+    ctx.body = message;
   }
 }
 

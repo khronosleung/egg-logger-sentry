@@ -6,21 +6,14 @@ class HomeController extends Controller {
   async index() {
     const { ctx } = this;
     const message = 'hi, ' + this.app.plugins.loggerSentry.name;
-
-    const input = {
-      ...ctx.request.body,
-    };
-
-    ctx.logger.debug(message, input);
-
-    // const output = ctx.app.Sentry.getCurrentHub().getStackTop().scope;
-
-    ctx.body = {
-      input,
-      output: {
-        // ...output,
+    ctx.logger.debug(message, {
+      extra: {
+        abc: {
+          def: [ 1 ],
+        },
       },
-    };
+    });
+    ctx.body = message;
   }
 }
 
