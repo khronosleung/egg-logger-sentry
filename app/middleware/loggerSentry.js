@@ -25,7 +25,7 @@ module.exports = () => {
     });
 
     const scope = new Sentry.Scope();
-    ctx.sentry = scope;
+    ctx.sentryScope = scope;
 
     scope.setSpan(transaction);
 
@@ -34,8 +34,7 @@ module.exports = () => {
     } catch (error) {
       ctx.logger.error(error);
     } finally {
-      ctx.sentry.clear();
-      ctx.res.on('finish', () => {
+      ctx.res.once('finish', () => {
         setImmediate(() => {
           // if using koa router, a nicer way to capture transaction using the matched route
           if (ctx._matchedRoute) {
