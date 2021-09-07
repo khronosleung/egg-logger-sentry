@@ -1,0 +1,15 @@
+coverage/
+node_modules/
+test/
+~*
+*.log
+.vscode
+.DS_Store
+.idea
+.editorconfig
+.eslintignore
+.eslintrc
+.gitignore
+.npmrc
+*.yml
+package-lock.json

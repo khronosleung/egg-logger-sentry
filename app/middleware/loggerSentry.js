@@ -2,7 +2,6 @@
 
 const {
   extractTraceparentData,
-  Span,
   stripUrlQueryAndFragment,
 } = require('@sentry/tracing');
 
@@ -10,9 +9,11 @@ module.exports = () => {
   return async function loggerSentryMiddleware(ctx, next) {
     const { Sentry } = ctx.app;
 
+    const sentryTraceHeaderName = 'sentry-trace';
+
     let traceparentData;
-    if (ctx.get('sentry-trace')) {
-      traceparentData = extractTraceparentData(ctx.get('sentry-trace'));
+    if (ctx.get(sentryTraceHeaderName)) {
+      traceparentData = extractTraceparentData(ctx.get(sentryTraceHeaderName));
     }
 
     const reqMethod = (ctx.method || '').toUpperCase();
