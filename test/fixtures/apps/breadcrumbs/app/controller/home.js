@@ -7,14 +7,22 @@ class HomeController extends Controller {
     const { ctx } = this;
     const message = 'hi, ' + this.app.plugins.loggerSentry.name;
 
-    console.log('console.log1');
-    console.log('console.log2');
+
+    await ctx.curl('http://httpbin.org/get?a=1', {
+      method: 'GET',
+    });
+    await ctx.curl('http://httpbin.org/get?a=2', {
+      method: 'GET',
+    });
+
+    ctx.sentryScope.addBreadcrumb({
+      type: 'default',
+      category: 'log',
+      data: undefined,
+      message,
+    });
 
     ctx.logger.debug(message);
-
-    // const output = ctx.app.Sentry.getCurrentHub().getStackTop().scope;
-
-    ctx.app.Sentry.addBreadcrumb({ message });
 
     ctx.body = {
       output: {

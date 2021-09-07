@@ -13,8 +13,6 @@ class HomeController extends Controller {
 
     ctx.logger.debug(message, input);
 
-    // const output = ctx.app.Sentry.getCurrentHub().getStackTop().scope;
-
     ctx.body = {
       input,
       output: {
