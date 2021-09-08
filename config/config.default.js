@@ -8,5 +8,5 @@
 exports.loggerSentry = {
   dsn: '',
   debug: false,
-  disable: [],
+  disableLoggers: [],
 };
