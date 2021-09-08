@@ -10,7 +10,7 @@
 [npm-image]: https://img.shields.io/npm/v/egg-logger-sentry.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/egg-logger-sentry
 [travis-image]: https://img.shields.io/travis/kidneyleung/egg-logger-sentry.svg?style=flat-square
-[travis-url]: https://travis-ci.org/kidneyleung/egg-logger-sentry
+[travis-url]: https://app.travis-ci.com/github/kidneyleung/egg-logger-sentry
 [codecov-image]: https://img.shields.io/codecov/c/github/kidneyleung/egg-logger-sentry.svg?style=flat-square
 [codecov-url]: https://codecov.io/github/kidneyleung/egg-logger-sentry?branch=master
 [david-image]: https://img.shields.io/david/kidneyleung/egg-logger-sentry.svg?style=flat-square
