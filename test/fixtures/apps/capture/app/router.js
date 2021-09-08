@@ -7,4 +7,5 @@ module.exports = app => {
   router.get('/capture/throw', controller.capture.throw);
   router.get('/capture/pre-and-post-context', controller.capture.prePostContext);
   router.get('/capture/stacktrace-order', controller.capture.stacktraceOrder);
+  router.get('/capture/format-string', controller.capture.formatString);
 };

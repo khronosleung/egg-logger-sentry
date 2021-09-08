@@ -4,6 +4,14 @@ const assert = require('assert');
 const mock = require('egg-mock');
 const sleep = require('ko-sleep');
 
+
+function truncate(str, max = 0) {
+  if (typeof str !== 'string' || max === 0) {
+    return str;
+  }
+  return str.length <= max ? str : `${str.substr(0, max)}...`;
+}
+
 describe('test/logger-sentry.test.js', () => {
   afterEach(() => {
     mock.restore();
@@ -277,6 +285,28 @@ describe('test/logger-sentry.test.js', () => {
         eventResult.exception.values[0].stacktrace.frames[
           eventResult.exception.values[0].stacktrace.frames.length - 1
         ].function, 'UserService.find');
+    });
+
+    it('message format string', async () => {
+      let eventResult = {};
+
+      const client = app.Sentry.getCurrentHub().getClient();
+      client._options.beforeSend = event => {
+        eventResult = { ...event };
+        return null;
+      };
+
+      const result = await app.httpRequest()
+        .get('/capture/format-string');
+
+      assert.deepEqual(result.status, 200);
+
+      await sleep(500);
+
+      assert.deepEqual(
+        eventResult.message,
+        truncate(result.text, 250)
+      );
     });
   });
 });

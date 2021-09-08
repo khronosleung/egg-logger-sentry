@@ -1,5 +1,6 @@
 'use strict';
 
+const util = require('util');
 const Controller = require('egg').Controller;
 
 class CaptureController extends Controller {
@@ -30,6 +31,15 @@ class CaptureController extends Controller {
     await ctx.service.user.find(1);
 
     this.ctx.body = 'ok';
+  }
+
+  async formatString() {
+    const { ctx } = this;
+
+    const messageTpl = 'test, i am %s, node versions: %j';
+    this.logger.info(messageTpl, 'logger-sentry', process.versions);
+
+    this.ctx.body = `[controller.capture] ${util.format('test, i am %s, node versions: %j', 'logger-sentry', process.versions)}`;
   }
 }
 

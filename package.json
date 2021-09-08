@@ -51,6 +51,7 @@
     "app.js",
     "index.d.ts"
   ],
+  "types": "index.d.ts",
   "ci": {
     "version": "8, 10"
   },
