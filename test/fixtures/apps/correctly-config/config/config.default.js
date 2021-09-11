@@ -3,5 +3,5 @@
 exports.keys = '123456';
 
 exports.loggerSentry = {
-  dsn: 'https://12345@example.com/1',
+  dsn: 'https://12345@sentry.example.com/1',
 };

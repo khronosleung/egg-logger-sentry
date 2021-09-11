@@ -5,16 +5,22 @@ const {
   stripUrlQueryAndFragment,
 } = require('@sentry/tracing');
 
+const fillScopeBaseProps = require('../../lib/fillScopeBaseProps');
+
 module.exports = () => {
   return async function loggerSentryMiddleware(ctx, next) {
     const { Sentry } = ctx.app;
 
     const sentryTraceHeaderName = 'sentry-trace';
 
-    let traceparentData;
+    let traceParentData;
     if (ctx.get(sentryTraceHeaderName)) {
-      traceparentData = extractTraceparentData(ctx.get(sentryTraceHeaderName));
+      traceParentData = extractTraceparentData(ctx.get(sentryTraceHeaderName));
     }
+
+    const scope = new Sentry.Scope();
+    fillScopeBaseProps(scope, ctx);
+    ctx.sentryScope = scope;
 
     const reqMethod = (ctx.method || '').toUpperCase();
     const reqUrl = ctx.url && stripUrlQueryAndFragment(ctx.url);
@@ -22,11 +28,8 @@ module.exports = () => {
     const transaction = Sentry.startTransaction({
       op: 'http.server',
       name: `${reqMethod} ${reqUrl}`,
-      ...traceparentData,
+      ...traceParentData,
     });
-
-    const scope = new Sentry.Scope();
-    ctx.sentryScope = scope;
 
     scope.setSpan(transaction);
 
@@ -43,6 +46,10 @@ module.exports = () => {
             transaction.setName(`${reqMethod} ${mountPath}${ctx._matchedRoute}`);
           }
           transaction.setHttpStatus(ctx.status);
+
+          // sync to sentry top scope
+          const currentStackTop = Sentry.getCurrentHub().getStackTop();
+          currentStackTop.scope = Sentry.Scope.clone(scope);
           transaction.finish();
         });
       });

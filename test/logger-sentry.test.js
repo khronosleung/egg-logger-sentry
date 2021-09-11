@@ -3,6 +3,7 @@
 const assert = require('assert');
 const mock = require('egg-mock');
 const sleep = require('ko-sleep');
+const nock = require('nock');
 
 
 function truncate(str, max = 0) {
@@ -114,7 +115,8 @@ describe('test/logger-sentry.test.js', () => {
 
       assert.deepEqual(eventResult.tags, {
         transaction: 'POST /',
-        'app-type': 'application',
+        'app.type': 'application',
+        'logger.entry': 'logger',
         abc: 'def',
       });
     });
@@ -307,6 +309,126 @@ describe('test/logger-sentry.test.js', () => {
         eventResult.message,
         truncate(result.text, 250)
       );
+    });
+  });
+
+
+  describe('trace-performance', () => {
+    let app;
+
+    before(() => {
+      app = mock.app({
+        baseDir: 'apps/trace-performance',
+      });
+      return app.ready();
+    });
+    after(() => app.close());
+
+    afterEach(mock.restore);
+
+    it('trace-curl', async () => {
+      nock.disableNetConnect();
+      nock.enableNetConnect(host => {
+        return host.includes('127.0.0.1');
+      });
+
+      let eventResult = {};
+      const sentryNockInstance = nock('http://sentry.example.com');
+      sentryNockInstance
+        .filteringRequestBody(body => {
+          const content = body.split('\n');
+          eventResult = {
+            envelopeHeaders: JSON.parse(content[0]),
+            itemHeaders: JSON.parse(content[1]),
+            reqBody: JSON.parse(content[2]),
+          };
+          return body;
+        })
+        .post(/\/api\/1\/.*/, /.*/)
+        .reply(200, 'ok');
+
+      const httpBinNockInstance = nock('http://httpbin.org');
+      httpBinNockInstance.get('/get?a=1')
+        .delay(300)
+        .reply(200, { message: 'mock response a = 1' });
+      httpBinNockInstance.get('/get?a=2')
+        .delay(200)
+        .reply(200, { message: 'mock response a = 2' });
+
+      const result = await app.httpRequest()
+        .get('/trace-performance/trace-curl');
+
+      assert.deepEqual(result.status, 200);
+
+      await sleep(1000);
+
+      assert.deepEqual(eventResult.reqBody.transaction, 'GET /trace-performance/trace-curl');
+      assert.deepEqual(eventResult.reqBody.tags.transaction, 'GET /trace-performance/trace-curl');
+      assert.deepEqual(eventResult.reqBody.contexts.trace.op, 'http.server');
+      assert.deepEqual(eventResult.reqBody.spans.length, 2);
+      assert.deepEqual(eventResult.reqBody.spans[0].op, 'request');
+      assert.deepEqual(eventResult.reqBody.spans[1].op, 'request');
+      assert.deepEqual(eventResult.reqBody.breadcrumbs.length, 2);
+      assert.deepEqual(eventResult.reqBody.breadcrumbs[0].type, 'http');
+      assert.deepEqual(eventResult.reqBody.breadcrumbs[1].type, 'http');
+      assert.deepEqual(eventResult.reqBody.user, {
+        ip_address: '127.0.0.1'
+      });
+
+      nock.cleanAll();
+    });
+
+    it('log-trace', async () => {
+      nock.disableNetConnect();
+      nock.enableNetConnect(host => {
+        return host.includes('127.0.0.1');
+      });
+
+      let eventResult = {};
+      const sentryNockInstance = nock('http://sentry.example.com');
+      sentryNockInstance
+        .filteringRequestBody(body => {
+          const content = body.split('\n');
+          eventResult = {
+            envelopeHeaders: JSON.parse(content[0]),
+            itemHeaders: JSON.parse(content[1]),
+            reqBody: JSON.parse(content[2]),
+          };
+          return body;
+        })
+        .post(/\/api\/1\/.*/, /.*/)
+        .reply(200, 'ok');
+
+      const httpBinNockInstance = nock('http://httpbin.org');
+      httpBinNockInstance.get('/get?a=1')
+        .delay(300)
+        .reply(200, { message: 'mock response a = 1' });
+      httpBinNockInstance.get('/get?a=2')
+        .delay(200)
+        .reply(200, { message: 'mock response a = 2' });
+
+      const result = await app.httpRequest()
+        .get('/trace-performance/trace-custom');
+
+      assert.deepEqual(result.status, 200);
+
+      await sleep(1000);
+
+      assert.deepEqual(eventResult.reqBody.transaction, 'GET /trace-performance/trace-custom');
+      assert.deepEqual(eventResult.reqBody.tags.transaction, 'GET /trace-performance/trace-custom');
+      assert.deepEqual(eventResult.reqBody.contexts.trace.op, 'http.server');
+      assert.deepEqual(eventResult.reqBody.spans.length, 3);
+      assert.deepEqual(eventResult.reqBody.spans[0].op, 'request');
+      assert.deepEqual(eventResult.reqBody.spans[1].op, 'sleep');
+      assert.deepEqual(eventResult.reqBody.spans[2].op, 'request');
+      assert.deepEqual(eventResult.reqBody.breadcrumbs.length, 2);
+      assert.deepEqual(eventResult.reqBody.breadcrumbs[0].type, 'http');
+      assert.deepEqual(eventResult.reqBody.breadcrumbs[1].type, 'http');
+      assert.deepEqual(eventResult.reqBody.user, {
+        ip_address: '127.0.0.1'
+      });
+
+      nock.cleanAll();
     });
   });
 });
