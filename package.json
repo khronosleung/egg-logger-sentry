@@ -1,6 +1,6 @@
 {
   "name": "egg-logger-sentry",
-  "version": "2.0.0-beta.1",
+  "version": "2.0.0",
   "description": "Logger transport for Sentry",
   "eggPlugin": {
     "name": "loggerSentry"
