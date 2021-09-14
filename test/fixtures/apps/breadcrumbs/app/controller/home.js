@@ -7,7 +7,6 @@ class HomeController extends Controller {
     const { ctx } = this;
     const message = 'hi, ' + this.app.plugins.loggerSentry.name;
 
-
     await ctx.curl('http://httpbin.org/get?a=1', {
       method: 'GET',
     });

@@ -20,6 +20,7 @@ describe('test/logger-sentry.test.js', () => {
 
   describe('sentry config', () => {
     it('empty config', async () => {
+      mock.consoleLevel('NONE');
       const app = mock.app({
         baseDir: 'apps/miss-config',
       });
@@ -180,7 +181,10 @@ describe('test/logger-sentry.test.js', () => {
 
       await sleep(500);
 
-      assert(eventResult.breadcrumbs.length === 3);
+      assert.deepEqual(eventResult.breadcrumbs.length, 3);
+      assert.deepEqual(eventResult.breadcrumbs[0].category, 'http');
+      assert.deepEqual(eventResult.breadcrumbs[1].category, 'http');
+      assert.deepEqual(eventResult.breadcrumbs[2].category, 'log');
     });
   });
 
@@ -312,6 +316,134 @@ describe('test/logger-sentry.test.js', () => {
     });
   });
 
+  describe('logger', () => {
+    it('app-coreLogger', async () => {
+      const app = mock.app({
+        baseDir: 'apps/logger-app-coreLogger',
+      });
+      await app.ready();
+
+      let eventResult = [];
+
+      const client = app.Sentry.getCurrentHub().getClient();
+      client._options.beforeSend = event => {
+        eventResult.push({ ...event });
+        return null;
+      };
+
+      const result = await app.httpRequest()
+          .get('/logger');
+
+      assert.deepEqual(result.status, 200);
+
+      await sleep(100);
+
+      assert.deepEqual(eventResult.length, 1);
+      assert.deepEqual(eventResult[0].tags['app.type'], 'application');
+      assert.deepEqual(eventResult[0].tags['logger.entry'], 'coreLogger');
+      assert.deepEqual(eventResult[0].message, 'coreLogger');
+
+      app.close();
+    });
+
+    it('app-logger', async () => {
+      const app = mock.app({
+        baseDir: 'apps/logger-app-logger',
+      });
+      await app.ready();
+
+      let eventResult = [];
+
+      const client = app.Sentry.getCurrentHub().getClient();
+      client._options.beforeSend = event => {
+        eventResult.push({ ...event });
+        return null;
+      };
+
+      const result = await app.httpRequest()
+          .get('/logger');
+
+      assert.deepEqual(result.status, 200);
+
+      await sleep(100);
+
+      assert.deepEqual(eventResult.length, 1);
+      assert.deepEqual(eventResult[0].tags['app.type'], 'application');
+      assert.deepEqual(eventResult[0].tags['logger.entry'], 'logger');
+      assert.deepEqual(eventResult[0].message, 'logger');
+
+      app.close();
+    });
+
+    it('app-scheduleLogger', async () => {
+      nock.disableNetConnect();
+      nock.enableNetConnect(host => {
+        return host.includes('127.0.0.1');
+      });
+
+      let eventResult = [];
+      const sentryNockInstance = nock('http://sentry.example.com');
+      sentryNockInstance
+        .filteringRequestBody(body => {
+          if (body.indexOf('}\n') > 0) {
+            const content = body.split('\n');
+            eventResult.push({
+              type: 'envelope',
+              body: {
+                envelopeHeaders: JSON.parse(content[0]),
+                itemHeaders: JSON.parse(content[1]),
+                reqBody: JSON.parse(content[2]),
+              },
+            });
+          } else {
+            eventResult.push({
+              type: 'store',
+              body: JSON.parse(body),
+            });
+          }
+          return body;
+        })
+        .persist()
+        .post(/\/api\/1\//, /.*/)
+        .reply(200, 'ok');
+
+      const httpBinNockInstance = nock('http://httpbin.org');
+      httpBinNockInstance.get('/get?a=1')
+        .delay(100)
+        .reply(200, { message: 'mock response a = 1' });
+
+      const app = mock.app({
+        baseDir: 'apps/logger-app-scheduleLogger',
+      });
+      await app.ready();
+
+      await app.runSchedule('task');
+      assert.deepEqual(app.scheduleTask, 'ok');
+
+      const result = await app.httpRequest()
+        .get('/logger');
+      assert.deepEqual(result.status, 200);
+
+      await sleep(1000);
+
+      assert.deepEqual(eventResult.length, 6);
+      assert.deepEqual(eventResult[0].body.tags['app.type'], 'agent');
+      assert.deepEqual(eventResult[0].body.tags['logger.entry'], 'scheduleLogger');
+
+      assert.deepEqual(eventResult[1].body.tags['app.type'], 'agent');
+      assert.deepEqual(eventResult[1].body.tags['logger.entry'], 'scheduleLogger');
+
+      assert.deepEqual(eventResult[2].body.tags['app.type'], 'agent');
+      assert.deepEqual(eventResult[2].body.tags['logger.entry'], 'scheduleLogger');
+
+      assert.deepEqual(eventResult[3].body.tags['app.type'], 'agent');
+      assert.deepEqual(eventResult[3].body.tags['logger.entry'], 'scheduleLogger');
+
+      app.close();
+
+      nock.cleanAll();
+    });
+  });
 
   describe('trace-performance', () => {
     let app;
@@ -344,7 +476,7 @@ describe('test/logger-sentry.test.js', () => {
           };
           return body;
         })
-        .post(/\/api\/1\/.*/, /.*/)
+        .post(/\/api\/1\//, /.*/)
         .reply(200, 'ok');
 
       const httpBinNockInstance = nock('http://httpbin.org');
@@ -360,7 +492,7 @@ describe('test/logger-sentry.test.js', () => {
 
       assert.deepEqual(result.status, 200);
 
-      await sleep(1000);
+      await sleep(500);
 
       assert.deepEqual(eventResult.reqBody.transaction, 'GET /trace-performance/trace-curl');
       assert.deepEqual(eventResult.reqBody.tags.transaction, 'GET /trace-performance/trace-curl');
@@ -371,6 +503,106 @@ describe('test/logger-sentry.test.js', () => {
       assert.deepEqual(eventResult.reqBody.breadcrumbs.length, 2);
       assert.deepEqual(eventResult.reqBody.breadcrumbs[0].type, 'http');
       assert.deepEqual(eventResult.reqBody.breadcrumbs[1].type, 'http');
+      assert.deepEqual(eventResult.reqBody.user, {
+        ip_address: '127.0.0.1'
+      });
+
+      nock.cleanAll();
+    });
+
+    it('trace-app-curl', async () => {
+      nock.disableNetConnect();
+      nock.enableNetConnect(host => {
+        return host.includes('127.0.0.1');
+      });
+
+      let eventResult = [];
+      const sentryNockInstance = nock('http://sentry.example.com');
+      sentryNockInstance
+        .filteringRequestBody(body => {
+          const content = body.split('\n');
+          eventResult.push({
+            envelopeHeaders: JSON.parse(content[0]),
+            itemHeaders: JSON.parse(content[1]),
+            reqBody: JSON.parse(content[2]),
+          });
+          return body;
+        })
+        .persist()
+        .post(/\/api\/1\/.*/, /.*/)
+        .reply(200, 'ok');
+
+      const httpBinNockInstance = nock('http://httpbin.org');
+      httpBinNockInstance.get('/get?a=1')
+        .delay(800)
+        .reply(200, { message: 'mock response a = 1' });
+      httpBinNockInstance.get('/get?a=2')
+        .delay(200)
+        .reply(200, { message: 'mock response a = 2' });
+
+      const result = await app.httpRequest()
+        .get('/trace-performance/trace-app-curl');
+
+      assert.deepEqual(result.status, 200);
+
+      await sleep(500);
+
+      assert.deepEqual(eventResult.length, 3);
+      assert.deepEqual(eventResult[0].reqBody.transaction, 'GET http://httpbin.org/get?a=1');
+      assert.deepEqual(eventResult[1].reqBody.transaction, 'GET http://httpbin.org/get?a=2');
+      assert.deepEqual(eventResult[2].reqBody.transaction, 'GET /trace-performance/trace-app-curl');
+      assert.deepEqual(eventResult[2].reqBody.tags.transaction, 'GET /trace-performance/trace-app-curl');
+      assert.deepEqual(eventResult[2].reqBody.contexts.trace.op, 'http.server');
+      assert.deepEqual(eventResult[2].reqBody.spans.length, 0);
+      assert.deepEqual(eventResult[2].reqBody.breadcrumbs, undefined);
+      assert.deepEqual(eventResult[2].reqBody.user, {
+        ip_address: '127.0.0.1'
+      });
+
+      nock.cleanAll();
+    });
+
+    it('traceParallelismCurl', async () => {
+      nock.disableNetConnect();
+      nock.enableNetConnect(host => {
+        return host.includes('127.0.0.1');
+      });
+
+      let eventResult = {};
+      const sentryNockInstance = nock('http://sentry.example.com');
+      sentryNockInstance
+        .filteringRequestBody(body => {
+          const content = body.split('\n');
+          eventResult = {
+            envelopeHeaders: JSON.parse(content[0]),
+            itemHeaders: JSON.parse(content[1]),
+            reqBody: JSON.parse(content[2]),
+          };
+          return body;
+        })
+        .post(/\/api\/1\/.*/, /.*/)
+        .reply(200, 'ok');
+
+      const httpBinNockInstance = nock('http://httpbin.org');
+      httpBinNockInstance.get('/get?a=1')
+        .delay(800)
+        .reply(200, { message: 'mock response a = 1' });
+      httpBinNockInstance.get('/get?a=2')
+        .delay(200)
+        .reply(200, { message: 'mock response a = 2' });
+
+      const result = await app.httpRequest()
+        .get('/trace-performance/trace-parallelism-curl');
+
+      assert.deepEqual(result.status, 200);
+
+      await sleep(500);
+
+      assert.deepEqual(eventResult.reqBody.transaction, 'GET /trace-performance/trace-parallelism-curl');
+      assert.deepEqual(eventResult.reqBody.tags.transaction, 'GET /trace-performance/trace-parallelism-curl');
+      assert.deepEqual(eventResult.reqBody.contexts.trace.op, 'http.server');
+      assert.deepEqual(eventResult.reqBody.spans.length, 2);
+      assert.deepEqual(eventResult.reqBody.breadcrumbs.length, 2);
       assert.deepEqual(eventResult.reqBody.user, {
         ip_address: '127.0.0.1'
       });
@@ -412,7 +644,7 @@ describe('test/logger-sentry.test.js', () => {
 
       assert.deepEqual(result.status, 200);
 
-      await sleep(1000);
+      await sleep(500);
 
       assert.deepEqual(eventResult.reqBody.transaction, 'GET /trace-performance/trace-custom');
       assert.deepEqual(eventResult.reqBody.tags.transaction, 'GET /trace-performance/trace-custom');

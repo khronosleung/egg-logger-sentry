@@ -10,5 +10,6 @@ exports.logger = {
 
 exports.loggerSentry = {
   dsn: 'http://12345@sentry.example.com/1',
-  disableLoggers: [ 'scheduleLogger', 'errorLogger', 'coreLogger' ],
+  tracesSampleRate: 1.0,
+  disableLoggers: [ 'coreLogger', 'errorLogger', 'logger' ],
 };

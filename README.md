@@ -180,7 +180,7 @@ const Controller = require('egg').Controller;
 class HomeController extends Controller {
   async index() {
     const renderData = {
-      sentryTrace: ctx.sentryScope.getSpan().toSentryTrace(),
+      sentryTrace: ctx.sentryScope.getSpan().toTraceparent(),
     };
     await this.ctx.render('index.nj', renderData);
   }
