@@ -55,6 +55,7 @@ class HomeController extends Controller {
 
     await ctx.curl('http://httpbin.org/get?a=1', {
       method: 'GET',
+      timing: true,
     });
 
     const parentSpan = ctx.sentryScope.getSpan();
@@ -70,6 +71,7 @@ class HomeController extends Controller {
 
     await ctx.curl('http://httpbin.org/get?a=2', {
       method: 'GET',
+      timing: true,
     });
 
     ctx.body = {
@@ -94,6 +96,27 @@ class HomeController extends Controller {
       timeout: 10000
     });
     const result = await Promise.all([curl1, curl2]);
+
+    ctx.body = {
+      output: message,
+    };
+  }
+
+  async traceCurlError() {
+    const { ctx, app } = this;
+    const message = 'hi, ' + app.plugins.loggerSentry.name;
+
+    try {
+      await ctx.curl('http://httpbin.org/post', {
+        method: 'POST',
+        dataType: 'json',
+        data: { a: 1 },
+        timing: true,
+        timeout: 10000
+      });
+    } catch (e) {
+
+    }
 
     ctx.body = {
       output: message,

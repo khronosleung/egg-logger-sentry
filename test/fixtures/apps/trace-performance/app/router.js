@@ -7,4 +7,5 @@ module.exports = app => {
   router.get('/trace-performance/trace-app-curl', controller.home.traceAppCurl);
   router.get('/trace-performance/trace-custom', controller.home.traceCustom);
   router.get('/trace-performance/trace-parallelism-curl', controller.home.traceParallelismCurl);
+  router.get('/trace-performance/trace-curl-error', controller.home.traceCurlError);
 };

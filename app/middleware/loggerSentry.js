@@ -5,7 +5,7 @@ const {
   stripUrlQueryAndFragment,
 } = require('@sentry/tracing');
 
-const fillScopeBaseProps = require('../../lib/fillScopeBaseProps');
+const fillScopeBaseProps = require('../../lib/utils/fillScopeBaseProps');
 
 module.exports = () => {
   return async function loggerSentryMiddleware(ctx, next) {
