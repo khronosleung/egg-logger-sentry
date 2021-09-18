@@ -213,7 +213,7 @@ describe('test/logger-sentry.test.js', () => {
       const result = await app.httpRequest()
         .get('/capture/throw');
 
-      assert.deepEqual(result.status, 404);
+      assert.deepEqual(result.status, 500);
 
       await sleep(500);
 
@@ -236,7 +236,7 @@ describe('test/logger-sentry.test.js', () => {
       const result = await app.httpRequest()
         .get('/capture/pre-and-post-context?name=abc');
 
-      assert.deepEqual(result.status, 404);
+      assert.deepEqual(result.status, 500);
 
       await sleep(500);
 
@@ -283,7 +283,7 @@ describe('test/logger-sentry.test.js', () => {
       const result = await app.httpRequest()
         .get('/capture/stacktrace-order');
 
-      assert.deepEqual(result.status, 404);
+      assert.deepEqual(result.status, 500);
 
       await sleep(500);
 
@@ -688,7 +688,7 @@ describe('test/logger-sentry.test.js', () => {
       const httpBinNockInstance = nock('http://httpbin.org');
       httpBinNockInstance.post('/', /.*/)
         .delay(300)
-        .reply(404);
+        .reply(500);
 
       const result = await app.httpRequest()
         .get('/trace-performance/trace-curl-error');

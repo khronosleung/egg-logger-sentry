@@ -36,6 +36,7 @@ module.exports = () => {
     try {
       await next();
     } catch (error) {
+      ctx.status = error.status || error.statusCode || 500;
       ctx.logger.error(error);
     } finally {
       ctx.res.once('finish', () => {
