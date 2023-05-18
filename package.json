@@ -1,6 +1,6 @@
 {
   "name": "egg-logger-sentry",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "Logger transport for Sentry",
   "eggPlugin": {
     "name": "loggerSentry"
@@ -14,11 +14,11 @@
     "sentry-egg"
   ],
   "dependencies": {
-    "@sentry/node": "6.13.3",
-    "@sentry/tracing": "6.13.3",
-    "@sentry/utils": "6.13.3",
-    "@sindresorhus/is": "4.2.0",
-    "egg-logger": "2.6.2"
+    "@sentry/node": "6.19.7",
+    "@sentry/tracing": "6.19.7",
+    "@sentry/utils": "6.19.7",
+    "@sindresorhus/is": "4.6.0",
+    "egg-logger": "2.9.1"
   },
   "devDependencies": {
     "autod": "^3.1.1",
@@ -58,12 +58,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kidneyleung/egg-logger-sentry.git"
+    "url": "git+https://github.com/khronosleung/egg-logger-sentry.git"
   },
   "bugs": {
-    "url": "https://github.com/kidneyleung/egg-logger-sentry/issues"
+    "url": "https://github.com/khronosleung/egg-logger-sentry/issues"
   },
-  "homepage": "https://github.com/kidneyleung/egg-logger-sentry#readme",
-  "author": "kidneyleung",
+  "homepage": "https://github.com/khronosleung/egg-logger-sentry#readme",
+  "author": "khronosleung",
   "license": "MIT"
 }
