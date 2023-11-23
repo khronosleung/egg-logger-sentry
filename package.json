@@ -16,7 +16,7 @@
   "dependencies": {
     "@sentry/node": "6.13.3",
     "@sentry/tracing": "6.13.3",
-    "@sentry/utils": "6.13.3",
+    "@sentry/utils": "6.19.7",
     "@sindresorhus/is": "4.2.0",
     "egg-logger": "2.6.2"
   },
